@@ -27,10 +27,7 @@ button.addEventListener("click", () => {
                 qIndexArray.shuffle();
                 generateQuestion(qIndexArray.pop());
             })
-            .catch(function(err) {  
-                console.log('Fetch Error :-S', err);  
-            }
-        );
+            .catch(e => console.error(e.message));
 
 
         return;
@@ -218,7 +215,6 @@ function removeRadioButtons() {
     const radioDiv = document.getElementsByClassName('sg-content-box__content')[0];
 
     let radioButtons = document.getElementsByClassName('sg-label');
-    console.log(radioButtons);
     for (let i = radioButtons.length - 1; i >= 0; i--) {
         radioDiv.removeChild(radioButtons[i]);
     }
