@@ -5,12 +5,13 @@ let pointCounter = 0;
 let questionsLength = -1;
 let timerID;
 let time;
+let qIndexArray;
 
 const button = document.getElementsByClassName('sg-button-primary')[0];
 button.addEventListener("click", () => {
     if (currentQuestion === (-1)) {
         currentQuestion++;
-        generateQuestion(currentQuestion);
+        
         button.textContent = "Next";
 
         fetch(jsonURL)
@@ -19,7 +20,18 @@ button.addEventListener("click", () => {
                 time = data.time_seconds;
                 startTimer(time, document.getElementById('time'));
                 questionsLength = data.questions.length;
-            });
+            })
+            .then(() => {
+                qIndexArray = new Array();
+                for(let i = 0; i < questionsLength; i++){ qIndexArray.push(i); }
+                qIndexArray.shuffle();
+                generateQuestion(qIndexArray.pop());
+            })
+            .catch(function(err) {  
+                console.log('Fetch Error :-S', err);  
+            }
+        );
+
 
         return;
     } else if (currentQuestion === questionsLength) {
@@ -46,7 +58,7 @@ button.addEventListener("click", () => {
 
             currentQuestion++;
             if (currentQuestion < questionsLength) {
-                generateQuestion(currentQuestion);
+                generateQuestion(qIndexArray.pop());
             } else {
                 endItAll("You've answered all questions!");
             }
@@ -54,6 +66,11 @@ button.addEventListener("click", () => {
 
 
 });
+
+Array.prototype.shuffle = function(){
+    let arr = this, output = arr.sort(function(a,b){return Math.floor(Math.random()*2);});
+    return output;
+};
 
 function displayFlashAllert() {
     let parentDiv = document.getElementsByClassName('flash-messages-container')[0];
