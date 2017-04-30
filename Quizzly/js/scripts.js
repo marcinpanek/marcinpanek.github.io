@@ -20,16 +20,19 @@ button.addEventListener("click", () => {
                 time = data.time_seconds;
                 startTimer(time, document.getElementById('time'));
                 questionsLength = data.questions.length;
-            })
-            .then(() => {
-                qIndexArray = new Array();
-                for(let i = 0; i < questionsLength; i++){ qIndexArray.push(i); }
-                qIndexArray.shuffle();
-                generateQuestion(qIndexArray.pop());
+
+                qIndexArray = [];
+                for (let i = 0; i < questionsLength; i++) {
+                    qIndexArray.push(i);
+                }
+                qIndexArray.sort(() => {
+                    return 0.5 - Math.random()
+                });
+
+                generateQuestion(qIndexArray.top());
             })
             .catch(e => console.error(e.message));
-
-
+            
         return;
     } else if (currentQuestion === questionsLength) {
         return startOverAgain();
@@ -43,7 +46,7 @@ button.addEventListener("click", () => {
 
     fetch(jsonURL)
         .then(resp => resp.json())
-        .then(data => data.questions[currentQuestion])
+        .then(data => data.questions[qIndexArray.pop()])
         .then(question => question.answers)
         .then(answer => {
 
@@ -55,7 +58,7 @@ button.addEventListener("click", () => {
 
             currentQuestion++;
             if (currentQuestion < questionsLength) {
-                generateQuestion(qIndexArray.pop());
+                generateQuestion(qIndexArray.top());
             } else {
                 endItAll("You've answered all questions!");
             }
@@ -64,9 +67,9 @@ button.addEventListener("click", () => {
 
 });
 
-Array.prototype.shuffle = function(){
-    let arr = this, output = arr.sort(function(a,b){return Math.floor(Math.random()*2);});
-    return output;
+
+Array.prototype.top = function () {
+    return this[this.length - 1];
 };
 
 function displayFlashAllert() {
@@ -196,6 +199,7 @@ function endItAll(headText) {
     const wrongText = "...and " + (currentQuestion - pointCounter) + " wrong.";
     document.getElementsByClassName('sg-text--headline')[0].textContent = correctText + " " + wrongText;
 
+    currentQuestion = questionsLength;
     button.textContent = "ONE MORE TRY";
 }
 
