@@ -142,11 +142,11 @@ function setQuestion(questionObj) {
 function radioOnClick() {
     const radioButtons = document.getElementsByClassName('sg-label');
 
-    for (let button of radioButtons) {
-        if (button.firstChild.firstChild.firstChild.checked) {
-            button.lastElementChild.setAttribute("class", "sg-text sg-text--standout sg-text--gray");
+    for (let i = 0; i < radioButtons.length; i++) {
+        if (radioButtons[i].firstChild.firstChild.firstChild.checked) {
+            radioButtons[i].lastElementChild.setAttribute("class", "sg-text sg-text--standout sg-text--gray");
         } else {
-            button.lastElementChild.setAttribute("class", "sg-text sg-text--standout sg-text--light");
+            radioButtons[i].lastElementChild.setAttribute("class", "sg-text sg-text--standout sg-text--light");
         }
     }
 }
@@ -159,8 +159,8 @@ function setAnswers(answers) {
     removeRadioButtons();
     const radioDiv = document.getElementById('radio-box');
 
-    for (let ans of answers) {
-        let button = makeRadioButton(ans.id, ans.answer);
+    for (let i = 0; i < answers.length; i++) {
+        let button = makeRadioButton(answers[i].id, answers[i].answer);
         button.addEventListener("click", radioOnClick);
         radioDiv.appendChild(button);
     }
