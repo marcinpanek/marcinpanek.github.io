@@ -7,13 +7,13 @@ let timerID;
 let time;
 let qIndexArray;
 
-const button = document.getElementById('main-button');
+const mainButton = document.getElementById('main-button');
 
-// 
-// Event listener for the main button in the app
-// the mechanics of the app happens here
-// 
-button.addEventListener("click", () => {
+/*
+ * Event listener for the main button in the app
+ * the mechanics of the app happens here
+ */
+mainButton.addEventListener("click", () => {
     if (currentQuestion === (-1)) {
         startQuiz();
     } else if (currentQuestion === questionsLength) {
@@ -22,19 +22,18 @@ button.addEventListener("click", () => {
         const selectedAns = document.querySelector('input[type=radio]:checked');
         if (!selectedAns) {
             displayFlashAllert();
-        }
-        else{
+        } else {
             checkSelectedAnswer(selectedAns);    
         }
     }
 });
 
-// 
-// Start quiz, fetch data from json, generate questons
-// 
+/*
+ * Start quiz, fetch data from json, generate questions
+ */
 function startQuiz() {
     currentQuestion++;
-    button.textContent = "Next";
+    mainButton.textContent = "Next";
 
     fetch(jsonURL)
         .then(resp => resp.json())
@@ -42,12 +41,14 @@ function startQuiz() {
             time = data.time_seconds;
             startTimer(time);
             questionsLength = data.questions.length;
-            document.getElementById('points').textContent = "0" + "/" + questionsLength + " Points";
+            document.getElementById('points').textContent = "0/" + questionsLength + " Points";
 
             qIndexArray = [];
             for (let i = 0; i < questionsLength; i++) {
                 qIndexArray.push(i);
             }
+
+            /* shuffle the questions */
             qIndexArray.sort(() => {
                 return 0.5 - Math.random()
             });
@@ -57,16 +58,17 @@ function startQuiz() {
         .catch(e => console.error(e.message));
 }
 
-// 
-// Check if selected answer is correct
-// checks for the end of the game
-// 
+/*
+ * Check if the selected answer is correct
+ * checks for the end of the quiz
+ */
 function checkSelectedAnswer(selectedAns) {
     fetch(jsonURL)
         .then(resp => resp.json())
         .then(data => data.questions[qIndexArray.pop()])
         .then(question => question.answers)
         .then(answer => {
+
             let id = selectedAns.id.slice(-1);
             if (answer[id - 1].correct === true) { pointCounter++; }
 
@@ -74,17 +76,15 @@ function checkSelectedAnswer(selectedAns) {
             document.getElementById('points').textContent = pointCounter + "/" + questionsLength + " Points";
             if (currentQuestion < questionsLength) {
                 generateQuestion(qIndexArray.top());
-                
             } else {
-                endItAll();
+                showFinishScreen("You've answered all questions!");
             }
-            
         }).catch(e => console.error(e.message));
 }
 
-// 
-// Display flash allert with 2 sec timeout
-// 
+/*
+ * Display flash allert with 2 sec timeout
+ */
 function displayFlashAllert() {
     let parentDiv = document.getElementById('flash-message');
 
@@ -112,9 +112,7 @@ function displayFlashAllert() {
     }
 }
 
-// 
-// Fetch single question
-// 
+
 function generateQuestion(questionID) {
     document.getElementById('head-text').textContent = "Question no " + (currentQuestion + 1);
     fetch(jsonURL)
@@ -125,51 +123,54 @@ function generateQuestion(questionID) {
         .catch(error => console.error(error.message));
 }
 
-// 
-// Set current queston text
-// return answers of this question
-// 
+/*
+ * Set current question text
+ * returns answers array of this question
+ */
 function setQuestion(questionObj) {
     const questionText = document.getElementById('question-text');
     questionText.textContent = questionObj.question;
     return questionObj.answers;
 }
 
-// 
-// Reset radio buttons, fill with new answers
-// answersObj - answers of current question from json
-// 
-function setAnswers(answersObj) {
+
+/*
+ * Event listener for each radio button
+ * change text color when radio selected
+ * loops through all radio buttons
+ */
+function radioOnClick() {
+    const radioButtons = document.getElementsByClassName('sg-label');
+
+    for (let button of radioButtons) {
+        if (button.firstChild.firstChild.firstChild.checked) {
+            button.lastElementChild.setAttribute("class", "sg-text sg-text--standout sg-text--gray");
+        } else {
+            button.lastElementChild.setAttribute("class", "sg-text sg-text--standout sg-text--light");
+        }
+    }
+}
+
+/*
+ * Reset radio buttons, fill with new answers
+ * @answers - answers of current question from json
+ */
+function setAnswers(answers) {
     removeRadioButtons();
     const radioDiv = document.getElementById('radio-box');
 
-    for (let i = 0; i < answersObj.length; i++) {
-        let button = makeRadioButton(answersObj[i].id, answersObj[i].answer);
-        button.addEventListener("click", () => {
-            // 
-            // Event listener for each radio button
-            // change text color when radio selected
-            // loops through all radio buttons
-            //             
-            let radioButtons = document.getElementsByClassName('sg-label');
-            for (let i = 0; i < radioButtons.length; i++) {
-                if(radioButtons[i].firstChild.firstChild.firstChild.checked){
-                    radioButtons[i].lastElementChild.setAttribute("class", "sg-text sg-text--standout sg-text--gray");
-                }
-                else{
-                    radioButtons[i].lastElementChild.setAttribute("class", "sg-text sg-text--standout sg-text--light");
-                }
-            }
-        });
+    for (let ans of answers) {
+        let button = makeRadioButton(ans.id, ans.answer);
+        button.addEventListener("click", radioOnClick);
         radioDiv.appendChild(button);
     }
 }
 
-// 
-// Create radio buttons elements
-// id - number of an answer
-// text - text of an answer
-// 
+/*
+ * Create radio buttons elements
+ * @id - number of an answer
+ * @text - text of an answer
+ */
 function makeRadioButton(id, text) {
     let parentDiv = document.createElement("div");
     parentDiv.setAttribute('class', "sg-label sg-label--large");
@@ -203,10 +204,10 @@ function makeRadioButton(id, text) {
     return parentDiv;
 }
 
-// 
-// Start timer
-// duration - length of countdown in seconds
-// 
+/*
+ * Start timer
+ * @duration - length of countdown in seconds
+ */
 function startTimer(duration) {
     const display = document.getElementById('time');
     let timer = duration;
@@ -219,7 +220,7 @@ function startTimer(duration) {
         display.textContent = minutes + ":" + seconds;
 
         if (--timer < 0) {
-            endItAll("Time is up!");
+            showFinishScreen("Time is up!");
         }
     }, 1000);
 }
@@ -230,25 +231,24 @@ function stopTimer() {
 }
 
 
-// 
-// Show the end values screen
-// 
-function endItAll() {
+/*
+ *  Show the end values screen
+ */
+function showFinishScreen(headText) {
     stopTimer();
     removeRadioButtons();
-    document.getElementById('head-text').textContent = "You've answered all questions!";
-
+    document.getElementById('head-text').textContent = headText;
     const correctText = "You got " + pointCounter + " correct answers!";
     const wrongText = "...and " + (currentQuestion - pointCounter) + " wrong.";
     document.getElementById('question-text').textContent = correctText + " " + wrongText;
 
     currentQuestion = questionsLength;
-    button.textContent = "ONE MORE TRY";
+    mainButton.textContent = "ONE MORE TRY";
 }
 
-// 
-// Reset app to start values
-// 
+/*
+ *  Reset app to start values
+ */
 function startOverAgain() {
     currentQuestion = -1;
     pointCounter = 0;
@@ -256,15 +256,11 @@ function startOverAgain() {
     document.getElementById('head-text').textContent = welcomeText;
     document.getElementById('question-text').textContent = "";
     document.getElementById('points').textContent = "";
-    button.textContent = "Start";
+    mainButton.textContent = "Start";
 
 }
 
-// 
-// Remove radio buttons
-// selecring child nodes by class name because when selecting
-// as list of child nodes, first child node is a text field
-// 
+
 function removeRadioButtons() {
     const radioNode = document.getElementById('radio-box');
     radioButtons = document.getElementsByClassName('sg-label');
@@ -273,9 +269,7 @@ function removeRadioButtons() {
     }
 }
 
-// 
-// Define Array top()
-// 
+
 Array.prototype.top = function () {
     return this[this.length - 1];
 };
