@@ -11,7 +11,6 @@ const button = document.getElementsByClassName('sg-button-primary')[0];
 button.addEventListener("click", () => {
     if (currentQuestion === (-1)) {
         currentQuestion++;
-        
         button.textContent = "Next";
 
         fetch(jsonURL)
@@ -20,6 +19,7 @@ button.addEventListener("click", () => {
                 time = data.time_seconds;
                 startTimer(time, document.getElementById('time'));
                 questionsLength = data.questions.length;
+                document.getElementById('points').textContent = "0" + "/" + questionsLength + " Points";
 
                 qIndexArray = [];
                 for (let i = 0; i < questionsLength; i++) {
@@ -32,7 +32,7 @@ button.addEventListener("click", () => {
                 generateQuestion(qIndexArray.top());
             })
             .catch(e => console.error(e.message));
-            
+
         return;
     } else if (currentQuestion === questionsLength) {
         return startOverAgain();
@@ -59,9 +59,11 @@ button.addEventListener("click", () => {
             currentQuestion++;
             if (currentQuestion < questionsLength) {
                 generateQuestion(qIndexArray.top());
+                document.getElementById('points').textContent = pointCounter + "/" + questionsLength + " Points";
             } else {
                 endItAll("You've answered all questions!");
             }
+            
         }).catch(e => console.error(e.message))
 
 
@@ -100,7 +102,7 @@ function displayFlashAllert() {
 }
 
 function generateQuestion(questionID) {
-    document.getElementsByClassName('sg-text-bit')[1].innerText = "Question no " + (currentQuestion + 1);
+    document.getElementsByClassName('sg-text-bit')[2].innerText = "Question no " + (currentQuestion + 1);
     fetch(jsonURL)
         .then(response => response.json())
         .then(data => data.questions)
@@ -120,20 +122,30 @@ function setQuestion(questionObj) {
 function setAnswers(answersObj) {
     removeRadioButtons();
 
-    const radioDiv = document.getElementsByClassName('sg-content-box__content')[0];
+    const radioDiv = document.getElementsByClassName('sg-content-box__content')[1];
 
 
     for (let i = 0; i < answersObj.length; i++) {
         let button = makeRadioButton(answersObj[i].id, answersObj[i].answer);
+        button.addEventListener("click", () => {
+            let radioButtons = document.getElementsByClassName('sg-label');
+            for (let i = 0; i < radioButtons.length; i++) {
+                if(radioButtons[i].firstChild.firstChild.firstChild.checked){
+                    radioButtons[i].lastElementChild.setAttribute("class", "sg-text sg-text--standout sg-text--gray");
+                }
+                else{
+                    radioButtons[i].lastElementChild.setAttribute("class", "sg-text sg-text--standout sg-text--light");
+                }
+            }
+        });
         radioDiv.appendChild(button);
     }
 
 }
 
-
 function makeRadioButton(id, text) {
     let parentDiv = document.createElement("div");
-    parentDiv.setAttribute('class', "sg-label");
+    parentDiv.setAttribute('class', "sg-label sg-label--large");
 
     let iconDiv = document.createElement("div");
     iconDiv.setAttribute("class", "sg-label__icon");
@@ -152,7 +164,7 @@ function makeRadioButton(id, text) {
     label.setAttribute("for", "radio-" + id);
 
     let label2 = document.createElement("label");
-    label2.setAttribute("class", "sg-label__text");
+    label2.setAttribute("class", "sg-text sg-text--standout sg-text--light");
     label2.setAttribute("for", "radio-" + id);
 
     label2.appendChild(document.createTextNode(text));
@@ -185,7 +197,7 @@ function startTimer(duration, display) {
 
 function stopTimer() {
     clearInterval(timerID);
-    document.getElementsByClassName('sg-text-bit')[0].textContent = "";
+    document.getElementsByClassName('sg-text-bit')[1].textContent = "";
 }
 
 
@@ -193,7 +205,7 @@ function endItAll(headText) {
     stopTimer();
     removeRadioButtons();
 
-    document.getElementsByClassName('sg-text-bit')[1].textContent = headText;
+    document.getElementsByClassName('sg-text-bit')[2].textContent = headText;
 
     const correctText = "You got " + pointCounter + " correct answers!";
     const wrongText = "...and " + (currentQuestion - pointCounter) + " wrong.";
@@ -208,15 +220,16 @@ function startOverAgain() {
     currentQuestion = -1;
     pointCounter = 0;
     const welcomeText = "QUIZZLY QUIZZ FOR BRAINLY";
-    document.getElementsByClassName('sg-text-bit')[1].textContent = welcomeText;
+    document.getElementsByClassName('sg-text-bit')[2].textContent = welcomeText;
     document.getElementsByClassName('sg-text--headline')[0].textContent = "";
+    document.getElementsByClassName('sg-text-bit')[0].textContent = "";
     button.textContent = "Start";
 
 }
 
 
 function removeRadioButtons() {
-    const radioDiv = document.getElementsByClassName('sg-content-box__content')[0];
+    const radioDiv = document.getElementsByClassName('sg-content-box__content')[1];
 
     let radioButtons = document.getElementsByClassName('sg-label');
     for (let i = radioButtons.length - 1; i >= 0; i--) {
