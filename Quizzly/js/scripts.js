@@ -57,9 +57,10 @@ button.addEventListener("click", () => {
             }
 
             currentQuestion++;
+            document.getElementById('points').textContent = pointCounter + "/" + questionsLength + " Points";
             if (currentQuestion < questionsLength) {
                 generateQuestion(qIndexArray.top());
-                document.getElementById('points').textContent = pointCounter + "/" + questionsLength + " Points";
+                
             } else {
                 endItAll("You've answered all questions!");
             }
