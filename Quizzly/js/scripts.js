@@ -7,54 +7,68 @@ let timerID;
 let time;
 let qIndexArray;
 
-const button = document.getElementsByClassName('sg-button-primary')[0];
+const button = document.getElementById('main-button');
+
+// 
+// Event listener for the main button in the app
+// the mechanics of the app happens here
+// 
 button.addEventListener("click", () => {
     if (currentQuestion === (-1)) {
-        currentQuestion++;
-        button.textContent = "Next";
-
-        fetch(jsonURL)
-            .then(resp => resp.json())
-            .then(data => {
-                time = data.time_seconds;
-                startTimer(time, document.getElementById('time'));
-                questionsLength = data.questions.length;
-                document.getElementById('points').textContent = "0" + "/" + questionsLength + " Points";
-
-                qIndexArray = [];
-                for (let i = 0; i < questionsLength; i++) {
-                    qIndexArray.push(i);
-                }
-                qIndexArray.sort(() => {
-                    return 0.5 - Math.random()
-                });
-
-                generateQuestion(qIndexArray.top());
-            })
-            .catch(e => console.error(e.message));
-
-        return;
+        startQuiz();
     } else if (currentQuestion === questionsLength) {
-        return startOverAgain();
+        startOverAgain();
+    } else {
+        const selectedAns = document.querySelector('input[type=radio]:checked');
+        if (!selectedAns) {
+            displayFlashAllert();
+        }
+        else{
+            checkSelectedAnswer(selectedAns);    
+        }
     }
+});
 
-    let selectedAns = document.querySelector('input[type=radio]:checked');
-    if (!selectedAns) {
-        displayFlashAllert();
-        return;
-    }
+// 
+// Start quiz, fetch data from json, generate questons
+// 
+function startQuiz() {
+    currentQuestion++;
+    button.textContent = "Next";
 
+    fetch(jsonURL)
+        .then(resp => resp.json())
+        .then(data => {
+            time = data.time_seconds;
+            startTimer(time);
+            questionsLength = data.questions.length;
+            document.getElementById('points').textContent = "0" + "/" + questionsLength + " Points";
+
+            qIndexArray = [];
+            for (let i = 0; i < questionsLength; i++) {
+                qIndexArray.push(i);
+            }
+            qIndexArray.sort(() => {
+                return 0.5 - Math.random()
+            });
+
+            generateQuestion(qIndexArray.top());
+        })
+        .catch(e => console.error(e.message));
+}
+
+// 
+// Check if selected answer is correct
+// checks for the end of the game
+// 
+function checkSelectedAnswer(selectedAns) {
     fetch(jsonURL)
         .then(resp => resp.json())
         .then(data => data.questions[qIndexArray.pop()])
         .then(question => question.answers)
         .then(answer => {
-
             let id = selectedAns.id.slice(-1);
-
-            if (answer[id - 1].correct === true) {
-                pointCounter++;
-            }
+            if (answer[id - 1].correct === true) { pointCounter++; }
 
             currentQuestion++;
             document.getElementById('points').textContent = pointCounter + "/" + questionsLength + " Points";
@@ -62,21 +76,17 @@ button.addEventListener("click", () => {
                 generateQuestion(qIndexArray.top());
                 
             } else {
-                endItAll("You've answered all questions!");
+                endItAll();
             }
             
-        }).catch(e => console.error(e.message))
+        }).catch(e => console.error(e.message));
+}
 
-
-});
-
-
-Array.prototype.top = function () {
-    return this[this.length - 1];
-};
-
+// 
+// Display flash allert with 2 sec timeout
+// 
 function displayFlashAllert() {
-    let parentDiv = document.getElementsByClassName('flash-messages-container')[0];
+    let parentDiv = document.getElementById('flash-message');
 
     if (parentDiv.children.length <= 0) {
         let flashDiv = document.createElement('div');
@@ -102,33 +112,45 @@ function displayFlashAllert() {
     }
 }
 
+// 
+// Fetch single question
+// 
 function generateQuestion(questionID) {
-    document.getElementsByClassName('sg-text-bit')[2].innerText = "Question no " + (currentQuestion + 1);
+    document.getElementById('head-text').textContent = "Question no " + (currentQuestion + 1);
     fetch(jsonURL)
         .then(response => response.json())
         .then(data => data.questions)
         .then(questions => setQuestion(questions[questionID]))
         .then(answers => setAnswers(answers))
-        .catch(error => console.error(error.message))
+        .catch(error => console.error(error.message));
 }
 
-
+// 
+// Set current queston text
+// return answers of this question
+// 
 function setQuestion(questionObj) {
-    const questionText = document.getElementsByClassName('sg-text--headline')[0];
-    questionText.innerText = questionObj.question;
+    const questionText = document.getElementById('question-text');
+    questionText.textContent = questionObj.question;
     return questionObj.answers;
 }
 
-
+// 
+// Reset radio buttons, fill with new answers
+// answersObj - answers of current question from json
+// 
 function setAnswers(answersObj) {
     removeRadioButtons();
-
-    const radioDiv = document.getElementsByClassName('sg-content-box__content')[1];
-
+    const radioDiv = document.getElementById('radio-box');
 
     for (let i = 0; i < answersObj.length; i++) {
         let button = makeRadioButton(answersObj[i].id, answersObj[i].answer);
         button.addEventListener("click", () => {
+            // 
+            // Event listener for each radio button
+            // change text color when radio selected
+            // loops through all radio buttons
+            //             
             let radioButtons = document.getElementsByClassName('sg-label');
             for (let i = 0; i < radioButtons.length; i++) {
                 if(radioButtons[i].firstChild.firstChild.firstChild.checked){
@@ -141,9 +163,13 @@ function setAnswers(answersObj) {
         });
         radioDiv.appendChild(button);
     }
-
 }
 
+// 
+// Create radio buttons elements
+// id - number of an answer
+// text - text of an answer
+// 
 function makeRadioButton(id, text) {
     let parentDiv = document.createElement("div");
     parentDiv.setAttribute('class', "sg-label sg-label--large");
@@ -177,16 +203,18 @@ function makeRadioButton(id, text) {
     return parentDiv;
 }
 
-
-function startTimer(duration, display) {
+// 
+// Start timer
+// duration - length of countdown in seconds
+// 
+function startTimer(duration) {
+    const display = document.getElementById('time');
     let timer = duration;
     let minutes;
     let seconds;
     timerID = setInterval(() => {
         minutes = parseInt(timer / 60, 10);
         seconds = parseInt(timer % 60, 10);
-
-
         seconds = seconds < 10 ? "0" + seconds : seconds;
         display.textContent = minutes + ":" + seconds;
 
@@ -198,42 +226,56 @@ function startTimer(duration, display) {
 
 function stopTimer() {
     clearInterval(timerID);
-    document.getElementsByClassName('sg-text-bit')[1].textContent = "";
+    document.getElementById('time').textContent = "";
 }
 
 
-function endItAll(headText) {
+// 
+// Show the end values screen
+// 
+function endItAll() {
     stopTimer();
     removeRadioButtons();
-
-    document.getElementsByClassName('sg-text-bit')[2].textContent = headText;
+    document.getElementById('head-text').textContent = "You've answered all questions!";
 
     const correctText = "You got " + pointCounter + " correct answers!";
     const wrongText = "...and " + (currentQuestion - pointCounter) + " wrong.";
-    document.getElementsByClassName('sg-text--headline')[0].textContent = correctText + " " + wrongText;
+    document.getElementById('question-text').textContent = correctText + " " + wrongText;
 
     currentQuestion = questionsLength;
     button.textContent = "ONE MORE TRY";
 }
 
-
+// 
+// Reset app to start values
+// 
 function startOverAgain() {
     currentQuestion = -1;
     pointCounter = 0;
     const welcomeText = "QUIZZLY QUIZZ FOR BRAINLY";
-    document.getElementsByClassName('sg-text-bit')[2].textContent = welcomeText;
-    document.getElementsByClassName('sg-text--headline')[0].textContent = "";
-    document.getElementsByClassName('sg-text-bit')[0].textContent = "";
+    document.getElementById('head-text').textContent = welcomeText;
+    document.getElementById('question-text').textContent = "";
+    document.getElementById('points').textContent = "";
     button.textContent = "Start";
 
 }
 
-
+// 
+// Remove radio buttons
+// selecring child nodes by class name because when selecting
+// as list of child nodes, first child node is a text field
+// 
 function removeRadioButtons() {
-    const radioDiv = document.getElementsByClassName('sg-content-box__content')[1];
-
-    let radioButtons = document.getElementsByClassName('sg-label');
+    const radioNode = document.getElementById('radio-box');
+    radioButtons = document.getElementsByClassName('sg-label');
     for (let i = radioButtons.length - 1; i >= 0; i--) {
-        radioDiv.removeChild(radioButtons[i]);
+        radioNode.removeChild(radioButtons[i]);
     }
 }
+
+// 
+// Define Array top()
+// 
+Array.prototype.top = function () {
+    return this[this.length - 1];
+};
