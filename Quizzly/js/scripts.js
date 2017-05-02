@@ -7,6 +7,9 @@ let timerID;
 let time;
 let qIndexArray;
 
+/*
+ * This event listener handles enter to trigger main button
+ /*
 document.addEventListener("keyup", (e) => {
     if (e.keyCode == 13) {
         mainButton.click();
