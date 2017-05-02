@@ -7,6 +7,9 @@ let timerID;
 let time;
 let qIndexArray;
 
+
+const mainButton = document.getElementById('main-button');
+
 /*
  * This event listener handles enter to trigger main button
  */
@@ -15,8 +18,6 @@ document.addEventListener("keyup", (e) => {
         mainButton.click();
     }
 });
-
-const mainButton = document.getElementById('main-button');
 
 /*
  * Event listener for the main button in the app
