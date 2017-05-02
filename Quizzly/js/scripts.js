@@ -7,6 +7,12 @@ let timerID;
 let time;
 let qIndexArray;
 
+document.addEventListener("keyup", (e) => {
+    if (e.keyCode == 13) {
+        mainButton.click();
+    }
+});
+
 const mainButton = document.getElementById('main-button');
 
 /*
@@ -26,7 +32,9 @@ mainButton.addEventListener("click", () => {
             checkSelectedAnswer(selectedAns);    
         }
     }
+
 });
+
 
 /*
  * Start quiz, fetch data from json, generate questions
@@ -69,7 +77,7 @@ function checkSelectedAnswer(selectedAns) {
         .then(question => question.answers)
         .then(answer => {
 
-            let id = selectedAns.id.slice(-1);
+            const id = selectedAns.id.slice(-1);
             if (answer[id - 1].correct === true) { pointCounter++; }
 
             currentQuestion++;
@@ -86,16 +94,16 @@ function checkSelectedAnswer(selectedAns) {
  * Display flash allert with 2 sec timeout
  */
 function displayFlashAllert() {
-    let parentDiv = document.getElementById('flash-message');
+    const parentDiv = document.getElementById('flash-message');
 
     if (parentDiv.children.length <= 0) {
-        let flashDiv = document.createElement('div');
+        const flashDiv = document.createElement('div');
         flashDiv.setAttribute('class', 'sg-flash');
 
-        let flashMessageDiv = document.createElement('div');
+        const flashMessageDiv = document.createElement('div');
         flashMessageDiv.setAttribute('class', 'sg-flash__message sg-flash__message--error js-flash-message');
 
-        let flashTextDiv = document.createElement('div');
+        const flashTextDiv = document.createElement('div');
         flashTextDiv.setAttribute('class', 'sg-text sg-text--small sg-text--emphasised sg-text--light');
 
         flashTextDiv.textContent = "Select the answer!";
@@ -164,6 +172,7 @@ function setAnswers(answers) {
         button.addEventListener("click", radioOnClick);
         radioDiv.appendChild(button);
     }
+    radioDiv.firstElementChild.focus();
 }
 
 /*
@@ -172,26 +181,26 @@ function setAnswers(answers) {
  * @text - text of an answer
  */
 function makeRadioButton(id, text) {
-    let parentDiv = document.createElement("div");
-    parentDiv.setAttribute('class', "sg-label sg-label--large");
+    const labelWrapper = document.createElement("label");
+    labelWrapper.setAttribute('class', "sg-label sg-label--large");
 
-    let iconDiv = document.createElement("div");
+    const iconDiv = document.createElement("div");
     iconDiv.setAttribute("class", "sg-label__icon");
 
-    let radio = document.createElement("div");
+    const radio = document.createElement("div");
     radio.setAttribute("class", "sg-radio");
 
-    let input = document.createElement("input");
+    const input = document.createElement("input");
     input.setAttribute("class", "sg-radio__element");
     input.type = "radio";
     input.name = "group1";
     input.id = "radio-" + id;
 
-    let label = document.createElement("label");
+    const label = document.createElement("label");
     label.setAttribute("class", "sg-radio__ghost");
     label.setAttribute("for", "radio-" + id);
 
-    let label2 = document.createElement("label");
+    const label2 = document.createElement("label");
     label2.setAttribute("class", "sg-text sg-text--standout sg-text--light");
     label2.setAttribute("for", "radio-" + id);
 
@@ -199,9 +208,9 @@ function makeRadioButton(id, text) {
     radio.appendChild(input);
     radio.appendChild(label);
     iconDiv.appendChild(radio);
-    parentDiv.appendChild(iconDiv);
-    parentDiv.appendChild(label2);
-    return parentDiv;
+    labelWrapper.appendChild(iconDiv);
+    labelWrapper.appendChild(label2);
+    return labelWrapper;
 }
 
 /*
@@ -252,7 +261,7 @@ function showFinishScreen(headText) {
 function startOverAgain() {
     currentQuestion = -1;
     pointCounter = 0;
-    const welcomeText = "QUIZZLY QUIZZ FOR BRAINLY";
+    const welcomeText = "QUIZZLY QUIZ FOR BRAINLY";
     document.getElementById('head-text').textContent = welcomeText;
     document.getElementById('question-text').textContent = "";
     document.getElementById('points').textContent = "";

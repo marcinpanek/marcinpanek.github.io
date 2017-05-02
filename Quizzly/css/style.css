@@ -1,0 +1,19 @@
+.sg-label {
+    transition-duration: 0.1s;
+    border-radius: 9px;
+    padding: 5px 15px;
+    border: 1px solid #7ed7ac;
+}
+
+.sg-label:hover {
+    border: 1px solid white;
+    background-color: #7ed7ac;
+    border-radius: 9px;
+    cursor: pointer;
+    cursor: hand;
+}
+
+.sg-label > .sg-text:hover {
+    cursor: pointer;
+    cursor: hand;
+}
